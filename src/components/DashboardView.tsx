@@ -14,9 +14,16 @@ import {
   Plus, 
   ArrowUpRight,
   Check,
-  ChevronDown
+  ChevronDown,
+  CalendarRange,
+  Clock3,
+  Map,
+  Flag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import { minutesToHoursLabel } from '../lib/schedulerAlgorithm';
+import { getCurrentPhase } from '../lib/roadmapGenerator';
 
 export const DashboardView: React.FC = () => {
   const { 
@@ -24,6 +31,8 @@ export const DashboardView: React.FC = () => {
     tasks, 
     subjects, 
     studySessions,
+    todaySchedule,
+    currentRoadmap,
     addTask,
     updateTask,
     // Focus Timer
@@ -122,6 +131,10 @@ export const DashboardView: React.FC = () => {
 
   // Calculate syllabus completions or mock roadmap
   const syllabusProgress = stats.syllabus_completion;
+
+  const nextStudyBlock = todaySchedule?.blocks.find(block => block.type === 'study') || null;
+  const currentRoadmapPhase = getCurrentPhase(currentRoadmap);
+  const nextWeeklyGoal = currentRoadmap?.weekly_targets[0] || null;
 
   return (
     <div className="space-y-6 page-transition">
@@ -222,6 +235,133 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
         </motion.div>
+      </div>
+
+      {/* ROADMAP SNAPSHOT */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-[#EBE6DD] rounded-[28px] p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-bold text-[#121212] flex items-center gap-2">
+              <Map className="w-4 h-4 text-[#F5C518]" />
+              Current Roadmap Phase
+            </h4>
+            <Link href="/roadmap" className="text-[10px] font-extrabold text-[#1E1E1E] hover:underline">
+              Open Roadmap
+            </Link>
+          </div>
+          {currentRoadmap && currentRoadmapPhase ? (
+            <div className="bg-[#FAF8F5] border border-[#EBE6DD] rounded-2xl p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-base font-extrabold text-[#121212]">{currentRoadmapPhase.name}</p>
+                  <p className="text-[10px] font-bold text-[#8A8A86] uppercase tracking-wider mt-1">
+                    {currentRoadmap.exam_name} - {currentRoadmap.remaining_days} days left
+                  </p>
+                </div>
+                <span className="text-xl font-extrabold text-[#F5C518]">{currentRoadmap.hours_per_day}h</span>
+              </div>
+              <div className="h-2 rounded-full bg-white border border-[#EBE6DD] mt-4 overflow-hidden">
+                <div className="h-full bg-[#F5C518]" style={{ width: `${currentRoadmapPhase.progress}%` }} />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#FAF8F5] border border-[#EBE6DD] rounded-2xl p-4 text-xs font-bold text-[#8A8A86]">
+              No roadmap generated yet.
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white border border-[#EBE6DD] rounded-[28px] p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-bold text-[#121212] flex items-center gap-2">
+              <Flag className="w-4 h-4 text-[#F5C518]" />
+              Next Weekly Goal
+            </h4>
+            <span className="text-[9px] bg-[#FAF8F5] border border-[#EBE6DD] text-[#8A8A86] px-2 py-1 rounded-lg font-bold uppercase">
+              Roadmap
+            </span>
+          </div>
+          {nextWeeklyGoal ? (
+            <div className="space-y-2">
+              <p className="text-sm font-extrabold text-[#121212]">{nextWeeklyGoal.title}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {nextWeeklyGoal.targets.slice(0, 4).map(goal => (
+                  <div key={goal} className="bg-[#FAF8F5] border border-[#EBE6DD] rounded-xl p-2.5 text-xs font-bold text-[#8A8A86] truncate">
+                    {goal}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#FAF8F5] border border-[#EBE6DD] rounded-2xl p-4 text-xs font-bold text-[#8A8A86]">
+              Generate a roadmap to see weekly goals.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* SMART SCHEDULER SNAPSHOT */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-[#EBE6DD] rounded-[28px] p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-bold text-[#121212] flex items-center gap-2">
+              <CalendarRange className="w-4 h-4 text-[#F5C518]" />
+              Today's Schedule
+            </h4>
+            <Link href="/scheduler" className="text-[10px] font-extrabold text-[#1E1E1E] hover:underline">
+              Open Scheduler
+            </Link>
+          </div>
+          {todaySchedule ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold text-[#8A8A86]">
+                <span>{todaySchedule.title}</span>
+                <span>{minutesToHoursLabel(todaySchedule.available_minutes)}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {todaySchedule.subjects.slice(0, 3).map(subject => (
+                  <div key={subject.id} className="bg-[#FAF8F5] border border-[#EBE6DD] rounded-2xl p-3">
+                    <p className="text-xs font-extrabold text-[#121212] truncate">{subject.name}</p>
+                    <p className="text-[10px] font-bold text-[#8A8A86] mt-1">{minutesToHoursLabel(subject.allocated_minutes)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#FAF8F5] border border-[#EBE6DD] rounded-2xl p-4 text-xs font-bold text-[#8A8A86]">
+              No daily schedule saved yet.
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white border border-[#EBE6DD] rounded-[28px] p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-bold text-[#121212] flex items-center gap-2">
+              <Clock3 className="w-4 h-4 text-[#F5C518]" />
+              Next Study Session
+            </h4>
+            <span className="text-[9px] bg-[#FAF8F5] border border-[#EBE6DD] text-[#8A8A86] px-2 py-1 rounded-lg font-bold uppercase">
+              Scheduler
+            </span>
+          </div>
+          {nextStudyBlock ? (
+            <div className="bg-[#1E1E1E] text-white rounded-2xl p-4 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-base font-extrabold truncate">{nextStudyBlock.title}</p>
+                <p className="text-[10px] font-bold text-[#8A8A86] uppercase tracking-wider mt-1">
+                  {nextStudyBlock.start_time} - {nextStudyBlock.end_time}
+                </p>
+              </div>
+              <span className="text-[#F5C518] text-xl font-extrabold flex-shrink-0">
+                {nextStudyBlock.duration_minutes}m
+              </span>
+            </div>
+          ) : (
+            <div className="bg-[#FAF8F5] border border-[#EBE6DD] rounded-2xl p-4 text-xs font-bold text-[#8A8A86]">
+              Generate a schedule to see your next session.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 2. DYNAMIC WORKSPACE GRID */}

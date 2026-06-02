@@ -23,6 +23,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   const getPageTitle = () => {
     if (pathname === '/tasks') return 'Task Manager';
+    if (pathname === '/scheduler') return 'Smart Daily Scheduler';
+    if (pathname === '/roadmap') return 'Roadmap Generator';
     switch (activeView) {
       case 'dashboard': return 'Dashboard';
       case 'tasks': return 'Task Manager';

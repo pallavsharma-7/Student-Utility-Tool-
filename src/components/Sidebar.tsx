@@ -25,8 +25,8 @@ export const Sidebar: React.FC = () => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/' },
     { id: 'tasks', label: 'Task Manager', icon: CheckSquare, href: '/tasks' },
-    { id: 'scheduler', label: 'Daily Scheduler', icon: CalendarRange },
-    { id: 'roadmap', label: 'Roadmap Builder', icon: Map },
+    { id: 'scheduler', label: 'Daily Scheduler', icon: CalendarRange, href: '/scheduler' },
+    { id: 'roadmap', label: 'Roadmap Builder', icon: Map, href: '/roadmap' },
     { id: 'mentor', label: 'Mentor Chat', icon: MessageSquareCode },
     { id: 'lectures', label: 'Lecture Tracker', icon: PlaySquare },
     { id: 'revisions', label: 'Revision Manager', icon: History },

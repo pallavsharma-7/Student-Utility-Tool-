@@ -27,6 +27,87 @@ export interface StudySession {
   created_at: string; // ISO string
 }
 
+export type ScheduleBlockType = 'study' | 'break' | 'lunch';
+
+export interface ScheduleSubject {
+  id: string;
+  name: string;
+  difficulty: number;
+  is_weak: boolean;
+  allocated_minutes: number;
+}
+
+export interface ScheduleBlock {
+  id: string;
+  type: ScheduleBlockType;
+  subject_id?: string;
+  title: string;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+}
+
+export interface DailySchedule {
+  id: string;
+  title: string;
+  date: string;
+  available_minutes: number;
+  start_time: string;
+  subjects: ScheduleSubject[];
+  blocks: ScheduleBlock[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoadmapSubject {
+  id: string;
+  name: string;
+  is_weak: boolean;
+  weight: number;
+}
+
+export interface RoadmapDailyTarget {
+  id: string;
+  day: number;
+  date: string;
+  subject: string;
+  title: string;
+  hours: number;
+}
+
+export interface RoadmapWeeklyTarget {
+  id: string;
+  week: number;
+  start_date: string;
+  end_date: string;
+  phase_id: string;
+  title: string;
+  targets: string[];
+  daily_targets: RoadmapDailyTarget[];
+}
+
+export interface RoadmapPhase {
+  id: string;
+  name: 'Learning' | 'Practice' | 'Revision' | 'Mock Tests';
+  start_day: number;
+  end_day: number;
+  goal: string;
+  progress: number;
+}
+
+export interface ExamRoadmap {
+  id: string;
+  exam_name: string;
+  exam_date: string;
+  hours_per_day: number;
+  remaining_days: number;
+  subjects: RoadmapSubject[];
+  phases: RoadmapPhase[];
+  weekly_targets: RoadmapWeeklyTarget[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface UserStats {
   name: string;
   email: string;
@@ -49,7 +130,8 @@ const KEYS = {
   TASKS: 'prepflow_tasks',
   STUDY_SESSIONS: 'prepflow_study_sessions',
   ROADMAP: 'prepflow_roadmap',
-  LECTURES: 'prepflow_lectures'
+  LECTURES: 'prepflow_lectures',
+  SCHEDULES: 'prepflow_schedules'
 };
 
 // ==========================================
@@ -122,6 +204,121 @@ export const seedDemoData = () => {
       syllabus_completion: 58
     };
     localStorage.setItem(KEYS.STATS, JSON.stringify(defaultStats));
+  }
+
+  // 5. Seed scheduler examples for Stage 4 testing
+  if (!localStorage.getItem(KEYS.SCHEDULES)) {
+    const today = new Date().toISOString().split('T')[0];
+    const demoSchedules: DailySchedule[] = [
+      {
+        id: 'schedule-jee-demo',
+        title: 'JEE Balanced Day',
+        date: today,
+        available_minutes: 480,
+        start_time: '08:00',
+        subjects: [
+          { id: 'jee-maths', name: 'Maths', difficulty: 9, is_weak: true, allocated_minutes: 270 },
+          { id: 'jee-physics', name: 'Physics', difficulty: 6, is_weak: false, allocated_minutes: 130 },
+          { id: 'jee-chemistry', name: 'Chemistry', difficulty: 3, is_weak: false, allocated_minutes: 80 }
+        ],
+        blocks: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: 'schedule-neet-demo',
+        title: 'NEET Bio-First Day',
+        date: today,
+        available_minutes: 420,
+        start_time: '07:30',
+        subjects: [
+          { id: 'neet-biology', name: 'Biology', difficulty: 8, is_weak: false, allocated_minutes: 190 },
+          { id: 'neet-physics', name: 'Physics', difficulty: 9, is_weak: true, allocated_minutes: 170 },
+          { id: 'neet-chemistry', name: 'Chemistry', difficulty: 5, is_weak: false, allocated_minutes: 60 }
+        ],
+        blocks: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: 'schedule-gate-demo',
+        title: 'GATE Core Systems Day',
+        date: today,
+        available_minutes: 390,
+        start_time: '09:00',
+        subjects: [
+          { id: 'gate-os', name: 'Operating Systems', difficulty: 9, is_weak: true, allocated_minutes: 170 },
+          { id: 'gate-dsa', name: 'DSA', difficulty: 8, is_weak: false, allocated_minutes: 120 },
+          { id: 'gate-dbms', name: 'DBMS', difficulty: 6, is_weak: false, allocated_minutes: 100 }
+        ],
+        blocks: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ];
+    localStorage.setItem(KEYS.SCHEDULES, JSON.stringify(demoSchedules));
+  }
+
+  // 6. Seed roadmap examples for Stage 5 testing
+  if (!localStorage.getItem(KEYS.ROADMAP)) {
+    const now = new Date().toISOString();
+    const demoRoadmaps: ExamRoadmap[] = [
+      {
+        id: 'roadmap-gate-demo',
+        exam_name: 'GATE',
+        exam_date: '2027-02-15',
+        hours_per_day: 5,
+        remaining_days: 258,
+        subjects: [
+          { id: 'roadmap-sub-dsa', name: 'DSA', is_weak: false, weight: 1 },
+          { id: 'roadmap-sub-os', name: 'OS', is_weak: true, weight: 1.5 },
+          { id: 'roadmap-sub-dbms', name: 'DBMS', is_weak: false, weight: 1 },
+          { id: 'roadmap-sub-cn', name: 'CN', is_weak: true, weight: 1.5 }
+        ],
+        phases: [
+          { id: 'phase-learning-demo', name: 'Learning', start_day: 1, end_day: 116, goal: 'Build core concepts subject by subject.', progress: 0 },
+          { id: 'phase-practice-demo', name: 'Practice', start_day: 117, end_day: 193, goal: 'Solve PYQs and topic practice.', progress: 0 },
+          { id: 'phase-revision-demo', name: 'Revision', start_day: 194, end_day: 232, goal: 'Run revision cycles and patch weak areas.', progress: 0 },
+          { id: 'phase-mocks-demo', name: 'Mock Tests', start_day: 233, end_day: 258, goal: 'Attempt mocks and analyze mistakes.', progress: 0 }
+        ],
+        weekly_targets: [],
+        created_at: now,
+        updated_at: now
+      },
+      {
+        id: 'roadmap-neet-demo',
+        exam_name: 'NEET',
+        exam_date: '2027-05-02',
+        hours_per_day: 6,
+        remaining_days: 334,
+        subjects: [
+          { id: 'roadmap-sub-bio', name: 'Biology', is_weak: false, weight: 1 },
+          { id: 'roadmap-sub-physics', name: 'Physics', is_weak: true, weight: 1.5 },
+          { id: 'roadmap-sub-chemistry', name: 'Chemistry', is_weak: false, weight: 1 }
+        ],
+        phases: [],
+        weekly_targets: [],
+        created_at: now,
+        updated_at: now
+      },
+      {
+        id: 'roadmap-jee-demo',
+        exam_name: 'JEE',
+        exam_date: '2027-01-24',
+        hours_per_day: 6,
+        remaining_days: 236,
+        subjects: [
+          { id: 'roadmap-sub-maths', name: 'Maths', is_weak: true, weight: 1.5 },
+          { id: 'roadmap-sub-physics-jee', name: 'Physics', is_weak: false, weight: 1 },
+          { id: 'roadmap-sub-chemistry-jee', name: 'Chemistry', is_weak: false, weight: 1 }
+        ],
+        phases: [],
+        weekly_targets: [],
+        created_at: now,
+        updated_at: now
+      }
+    ];
+    localStorage.setItem(KEYS.ROADMAP, JSON.stringify(demoRoadmaps));
   }
 };
 
@@ -375,5 +572,70 @@ export const dbService = {
 
     await calculateDashboardStats();
     return newSession;
+  },
+
+  // --- DAILY SCHEDULES ---
+  async getSchedules(): Promise<DailySchedule[]> {
+    return getLocalData<DailySchedule[]>(KEYS.SCHEDULES, []);
+  },
+
+  async getTodaySchedule(): Promise<DailySchedule | null> {
+    const today = new Date().toISOString().split('T')[0];
+    const schedules = await this.getSchedules();
+    return schedules.find(schedule => schedule.date === today) || schedules[0] || null;
+  },
+
+  async saveSchedule(schedule: DailySchedule): Promise<DailySchedule> {
+    const current = await this.getSchedules();
+    const now = new Date().toISOString();
+    const savedSchedule = {
+      ...schedule,
+      updated_at: now,
+      created_at: schedule.created_at || now
+    };
+    const exists = current.some(item => item.id === savedSchedule.id);
+    const updated = exists
+      ? current.map(item => item.id === savedSchedule.id ? savedSchedule : item)
+      : [savedSchedule, ...current];
+
+    setLocalData(KEYS.SCHEDULES, updated);
+    return savedSchedule;
+  },
+
+  async deleteSchedule(id: string): Promise<void> {
+    const current = await this.getSchedules();
+    setLocalData(KEYS.SCHEDULES, current.filter(schedule => schedule.id !== id));
+  },
+
+  // --- EXAM ROADMAPS ---
+  async getRoadmaps(): Promise<ExamRoadmap[]> {
+    return getLocalData<ExamRoadmap[]>(KEYS.ROADMAP, []);
+  },
+
+  async getCurrentRoadmap(): Promise<ExamRoadmap | null> {
+    const roadmaps = await this.getRoadmaps();
+    return roadmaps[0] || null;
+  },
+
+  async saveRoadmap(roadmap: ExamRoadmap): Promise<ExamRoadmap> {
+    const current = await this.getRoadmaps();
+    const now = new Date().toISOString();
+    const savedRoadmap = {
+      ...roadmap,
+      updated_at: now,
+      created_at: roadmap.created_at || now
+    };
+    const exists = current.some(item => item.id === savedRoadmap.id);
+    const updated = exists
+      ? current.map(item => item.id === savedRoadmap.id ? savedRoadmap : item)
+      : [savedRoadmap, ...current];
+
+    setLocalData(KEYS.ROADMAP, updated);
+    return savedRoadmap;
+  },
+
+  async deleteRoadmap(id: string): Promise<void> {
+    const current = await this.getRoadmaps();
+    setLocalData(KEYS.ROADMAP, current.filter(roadmap => roadmap.id !== id));
   }
 };

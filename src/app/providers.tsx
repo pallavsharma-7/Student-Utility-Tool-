@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { dbService, UserStats, Task, Subject, StudySession } from '../lib/db';
+import { dbService, UserStats, Task, Subject, StudySession, DailySchedule, ExamRoadmap } from '../lib/db';
 
 interface UserSession {
   name: string;
@@ -24,12 +24,20 @@ interface AppContextProps {
   tasks: Task[];
   subjects: Subject[];
   studySessions: StudySession[];
+  schedules: DailySchedule[];
+  todaySchedule: DailySchedule | null;
+  roadmaps: ExamRoadmap[];
+  currentRoadmap: ExamRoadmap | null;
   
   // Actions
   addTask: (title: string, subjectId: string | null, priority?: 'low' | 'medium' | 'high', notes?: string, due_date?: string | null) => Promise<void>;
   updateTask: (id: string, fields: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   logStudySession: (subjectId: string | null, durationSeconds: number) => Promise<void>;
+  saveSchedule: (schedule: DailySchedule) => Promise<void>;
+  deleteSchedule: (id: string) => Promise<void>;
+  saveRoadmap: (roadmap: ExamRoadmap) => Promise<void>;
+  deleteRoadmap: (id: string) => Promise<void>;
   refreshStats: () => Promise<void>;
 
   // Focus Timer active states
@@ -64,6 +72,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
+  const [schedules, setSchedules] = useState<DailySchedule[]>([]);
+  const [todaySchedule, setTodaySchedule] = useState<DailySchedule | null>(null);
+  const [roadmaps, setRoadmaps] = useState<ExamRoadmap[]>([]);
+  const [currentRoadmap, setCurrentRoadmap] = useState<ExamRoadmap | null>(null);
 
   // Focus Timer States
   const [timerActive, setTimerActive] = useState<boolean>(false);
@@ -90,11 +102,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const currentTasks = await dbService.getTasks();
       const currentSubjects = await dbService.getSubjects();
       const currentSessions = await dbService.getStudySessions();
+      const currentSchedules = await dbService.getSchedules();
+      const currentTodaySchedule = await dbService.getTodaySchedule();
+      const currentRoadmaps = await dbService.getRoadmaps();
+      const activeRoadmap = await dbService.getCurrentRoadmap();
 
       setStats(currentStats);
       setTasks(currentTasks);
       setSubjects(currentSubjects);
       setStudySessions(currentSessions);
+      setSchedules(currentSchedules);
+      setTodaySchedule(currentTodaySchedule);
+      setRoadmaps(currentRoadmaps);
+      setCurrentRoadmap(activeRoadmap);
     } catch (e) {
       console.error('Error fetching databases', e);
     }
@@ -173,6 +193,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await fetchAllRecords();
   };
 
+  const saveSchedule = async (schedule: DailySchedule) => {
+    await dbService.saveSchedule(schedule);
+    await fetchAllRecords();
+  };
+
+  const deleteSchedule = async (id: string) => {
+    await dbService.deleteSchedule(id);
+    await fetchAllRecords();
+  };
+
+  const saveRoadmap = async (roadmap: ExamRoadmap) => {
+    await dbService.saveRoadmap(roadmap);
+    await fetchAllRecords();
+  };
+
+  const deleteRoadmap = async (id: string) => {
+    await dbService.deleteRoadmap(id);
+    await fetchAllRecords();
+  };
+
   const refreshStats = async () => {
     const s = await dbService.getStats();
     setStats(s);
@@ -191,10 +231,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       tasks,
       subjects,
       studySessions,
+      schedules,
+      todaySchedule,
+      roadmaps,
+      currentRoadmap,
       addTask,
       updateTask,
       deleteTask,
       logStudySession,
+      saveSchedule,
+      deleteSchedule,
+      saveRoadmap,
+      deleteRoadmap,
       refreshStats,
       
       // Focus Timer
